@@ -2,23 +2,74 @@ package com.example.todo.eventList
 
 import android.app.ActivityOptions
 import android.content.Intent
+import android.graphics.Canvas
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.todo.addEvent.AddEventActivity
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import com.example.todo.CommonUtils.setAnimation
-import com.example.todo.modal.Events
 import com.example.todo.R
-import com.example.todo.viewEvent.ViewEventActivity.Companion.createIntent
+import com.example.todo.addEvent.AddEventActivity
+import com.example.todo.database.AppDatabase
+import com.example.todo.modal.Events
+import com.example.todo.viewEvent.ViewEventActivity
 import kotlinx.android.synthetic.main.activity_event_list.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 
 class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListener {
 
-    private lateinit var adapter: EventListAdapter
     private val eventList = arrayListOf<Events>()
+
+    private val database by lazy {
+        AppDatabase(this)
+    }
+
+    private val eventListAdapter by lazy {
+        EventListAdapter(ArrayList())
+    }
+    private lateinit var swipeController: SwipeController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_event_list)
+        rv_events.adapter = eventListAdapter
+        eventListAdapter.setListener(this)
+
+        swipeController = SwipeController(object : SwipeControllerActions {
+            override fun onEditClicked(position: Int) {
+            }
+
+            override fun onDeleteClicked(position: Int) {
+                val event = eventListAdapter.events[position].eventTime
+                CoroutineScope(Dispatchers.IO).async {
+                    database.todoDao().delete(event)
+                }
+                eventListAdapter.events.removeAt(position)
+                eventListAdapter.notifyItemRemoved(position)
+                eventListAdapter.notifyItemRangeChanged(position, eventListAdapter.itemCount)
+            }
+        })
+
+        rv_events.addItemDecoration(object : ItemDecoration() {
+            override fun onDraw(
+                c: Canvas,
+                parent: RecyclerView,
+                state: RecyclerView.State
+            ) {
+                swipeController.onDraw(c)
+            }
+        })
+
+        val itemTouchhelper = ItemTouchHelper(swipeController)
+        itemTouchhelper.attachToRecyclerView(rv_events)
+
+        CoroutineScope(Dispatchers.IO).async {
+            eventListAdapter.updateAdapter(database.todoDao().getAllEvents())
+        }
+
 
         img_add_event.setOnClickListener {
             setAnimation(window)
@@ -36,21 +87,15 @@ class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListen
         if (requestCode == EVENT_LIST && data != null) {
             val event = data.getParcelableExtra<Events>("event_data")
             eventList.add(event)
-            adapter = EventListAdapter(eventList, this)
-            rv_events.adapter = adapter
+            eventListAdapter.updateAdapter(eventList)
         }
     }
-
 
     companion object {
         const val EVENT_LIST = 7000
     }
 
-    override fun editClickListener(events: Events) {
-        startActivity(createIntent(this, events))
-    }
-
-    override fun deleteClickListener(adapterPosition: Int) {
-
+    override fun viewEvent(events: Events) {
+        startActivity(ViewEventActivity.createIntent(this, events))
     }
 }

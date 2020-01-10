@@ -6,14 +6,20 @@ import android.app.TimePickerDialog
 import android.app.TimePickerDialog.OnTimeSetListener
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.R
+import com.example.todo.database.AppDatabase
+import com.example.todo.databinding.ActivityAddEventBinding
 import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
 import com.example.todo.modal.Events
 import com.example.todo.scanner.ScannerActivity
 import kotlinx.android.synthetic.main.activity_add_event.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.*
 
 
@@ -24,9 +30,15 @@ class AddEventActivity : AppCompatActivity(),
         Calendar.getInstance()
     }
 
+    private val database by lazy {
+        AppDatabase(this)
+    }
+
+    private lateinit var binding: ActivityAddEventBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_event)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_add_event)
 
         bt_scan.setOnClickListener {
             startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
@@ -57,14 +69,14 @@ class AddEventActivity : AppCompatActivity(),
             datePickerDialog.show()
         }
 
-        tv_event_date_time.setOnClickListener {
+        tv_event_time.setOnClickListener {
             val mHour = calendar[Calendar.HOUR_OF_DAY]
             val mMinute = calendar[Calendar.MINUTE]
             val timePickerDialog = TimePickerDialog(
                 this,
                 OnTimeSetListener { _, hourOfDay, minute ->
                     val isPM = hourOfDay >= 12
-                    tv_event_date_time.text = String.format(
+                    tv_event_time.text = String.format(
                         "%02d:%02d %s",
                         if (hourOfDay == 12 || hourOfDay == 0) 12 else hourOfDay % 12,
                         minute,
@@ -83,17 +95,49 @@ class AddEventActivity : AppCompatActivity(),
             events.apply {
                 eventCategory = tv_category.text.toString()
                 eventDate = tv_event_date.text.toString()
-                eventTime = tv_event_date_time.text.toString()
+                eventTime = tv_event_time.text.toString()
                 eventName = et_event_name.text.toString()
             }
-            val intent = Intent()
-            intent.putExtra("event_data", events)
-            setResult(EVENT_LIST, intent)
-            finish()
+
+
+            if (validation()) {
+                val intent = Intent()
+                intent.putExtra("event_data", events)
+                setResult(EVENT_LIST, intent)
+
+                //save data in the database
+                GlobalScope.launch {
+                    database.todoDao().insertAll(events)
+                }
+                finish()
+            } else {
+                Toast.makeText(this, "All Fields Are Mandatory", Toast.LENGTH_SHORT).show()
+            }
         }
 
         bt_cancel.setOnClickListener {
             finish()
+        }
+    }
+
+
+    private fun validation(): Boolean {
+        return when {
+            tv_category.text.toString().isEmpty() -> {
+                false
+            }
+            tv_event_date.text.toString().isEmpty() -> {
+                false
+            }
+            tv_event_time.text.toString().isEmpty() -> {
+                false
+            }
+            et_event_name.text.toString().isEmpty() -> {
+                false
+            }
+            else -> {
+                true
+            }
         }
     }
 
@@ -106,17 +150,10 @@ class AddEventActivity : AppCompatActivity(),
         }
     }
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == SCAN_DATA && data != null) {
-            val event = data.getParcelableExtra<Events>("scan_data")
-            event.apply {
-                tv_category.text = eventCategory
-                tv_event_date.text = eventDate
-                tv_event_date_time.text = eventTime
-                et_event_name.setText(eventName)
-            }
+            binding.events = data.getParcelableExtra("scan_data")
         }
     }
 

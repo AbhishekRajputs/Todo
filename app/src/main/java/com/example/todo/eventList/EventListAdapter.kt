@@ -11,10 +11,17 @@ import com.example.todo.R
 import kotlinx.android.synthetic.main.rv_event_item.view.*
 
 class EventListAdapter(
-    private var events: ArrayList<Events>,
-    private var listener: ModifyItemListener
+     var events: ArrayList<Events>
 ) :
     RecyclerView.Adapter<EventListAdapter.EventsViewHolder>() {
+
+    private lateinit var modifyItemListener :ModifyItemListener
+
+
+    fun setListener(modifyItemListener: ModifyItemListener)
+    {
+        this.modifyItemListener = modifyItemListener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventsViewHolder {
         return EventsViewHolder(
@@ -34,6 +41,11 @@ class EventListAdapter(
         holder.bindItems(events[position])
     }
 
+    fun updateAdapter(list: List<Events>) {
+        events = list as ArrayList<Events>
+        notifyDataSetChanged()
+    }
+
     inner class EventsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         fun bindItems(events: Events) {
             val generator = ColorGenerator.MATERIAL
@@ -50,10 +62,7 @@ class EventListAdapter(
                 )
             )
             itemView.img_edit.setOnClickListener {
-                listener.editClickListener(events)
-            }
-            itemView.img_del.setOnClickListener {
-                listener.deleteClickListener(adapterPosition)
+                modifyItemListener.viewEvent(events)
             }
             itemView.tv_event_name.text = events.eventName
             itemView.tv_event_category.text = events.eventCategory
@@ -62,7 +71,6 @@ class EventListAdapter(
     }
 
     interface ModifyItemListener {
-        fun editClickListener(events: Events)
-        fun deleteClickListener(adapterPosition: Int)
+        fun viewEvent(events: Events)
     }
 }
