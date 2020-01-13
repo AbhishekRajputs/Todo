@@ -70,7 +70,6 @@ class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListen
             eventListAdapter.updateAdapter(database.todoDao().getAllEvents())
         }
 
-
         img_add_event.setOnClickListener {
             setAnimation(window)
             val options = ActivityOptions.makeSceneTransitionAnimation(this)

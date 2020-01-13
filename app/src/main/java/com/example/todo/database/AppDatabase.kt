@@ -7,10 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.todo.dataAccessObject.TodoDao
 import com.example.todo.modal.Events
 
-@Database(
-    entities = [Events::class],
-    version = 1
-)
+@Database(entities = [Events::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun todoDao(): TodoDao
@@ -24,8 +21,7 @@ abstract class AppDatabase : RoomDatabase() {
             instance ?: buildDatabase(context).also { instance = it }
         }
 
-        private fun buildDatabase(context: Context) = Room.databaseBuilder(
-            context, AppDatabase::class.java, "Todo.db"
-        ).build()
+        private fun buildDatabase(context: Context) =
+            Room.databaseBuilder(context, AppDatabase::class.java, "Todo.db").build()
     }
 }

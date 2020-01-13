@@ -21,5 +21,5 @@ interface TodoDao {
     fun delete(todo: String)
 
     @Update
-    fun updateTodo(vararg todos: Events)
+    fun updateTodo(vararg event: Events)
 }

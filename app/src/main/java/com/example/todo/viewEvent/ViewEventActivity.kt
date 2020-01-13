@@ -23,7 +23,6 @@ class ViewEventActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_view_event)
 
-
         intent?.let {
             if (it.hasExtra(EXTRA_EVENT_DATA)) {
                 binding.events = it.getParcelableExtra(EXTRA_EVENT_DATA)
@@ -50,5 +49,4 @@ class ViewEventActivity : AppCompatActivity() {
             return intent
         }
     }
-
 }

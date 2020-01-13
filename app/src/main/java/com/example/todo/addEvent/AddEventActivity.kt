@@ -18,8 +18,7 @@ import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
 import com.example.todo.modal.Events
 import com.example.todo.scanner.ScannerActivity
 import kotlinx.android.synthetic.main.activity_add_event.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 
 
@@ -104,9 +103,8 @@ class AddEventActivity : AppCompatActivity(),
                 val intent = Intent()
                 intent.putExtra("event_data", events)
                 setResult(EVENT_LIST, intent)
-
                 //save data in the database
-                GlobalScope.launch {
+                CoroutineScope(Dispatchers.IO).async {
                     database.todoDao().insertAll(events)
                 }
                 finish()
