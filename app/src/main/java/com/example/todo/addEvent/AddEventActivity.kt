@@ -15,15 +15,19 @@ import com.example.todo.R
 import com.example.todo.database.AppDatabase
 import com.example.todo.databinding.ActivityAddEventBinding
 import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
+import com.example.todo.eventList.EventListActivity.Companion.EXTRA_ALL_EVENT
 import com.example.todo.modal.Events
 import com.example.todo.scanner.ScannerActivity
 import kotlinx.android.synthetic.main.activity_add_event.*
 import kotlinx.coroutines.*
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class AddEventActivity : AppCompatActivity(),
     MyDialogFragment.ItemClickListener {
+
+    private lateinit var eventList: ArrayList<Events>
 
     private val calendar by lazy {
         Calendar.getInstance()
@@ -38,6 +42,12 @@ class AddEventActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_add_event)
+
+        intent?.let {
+            if (it.hasExtra(EXTRA_ALL_EVENT)) {
+                eventList = it.getParcelableArrayListExtra<Events>(EXTRA_ALL_EVENT)
+            }
+        }
 
         bt_scan.setOnClickListener {
             startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
@@ -98,18 +108,26 @@ class AddEventActivity : AppCompatActivity(),
                 eventName = et_event_name.text.toString()
             }
 
-
             if (validation()) {
-                val intent = Intent()
-                intent.putExtra("event_data", events)
-                setResult(EVENT_LIST, intent)
-                //save data in the database
-                CoroutineScope(Dispatchers.IO).async {
-                    database.todoDao().insertAll(events)
+                if (eventList.isNotEmpty()) {
+                    for (item in eventList) {
+                        if (item.eventTime == events.eventTime) {
+                            Toast.makeText(
+                                this,
+                                "A event is already added in this time", Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    val intent = Intent()
+                    intent.putExtra("event_data", events)
+                    setResult(EVENT_LIST, intent)
+                    //save data in the database
+                    CoroutineScope(Dispatchers.IO).async {
+                        database.todoDao().insertAll(events)
+                    }
+                    finish()
                 }
-                finish()
-            } else {
-                Toast.makeText(this, "All Fields Are Mandatory", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -122,15 +140,31 @@ class AddEventActivity : AppCompatActivity(),
     private fun validation(): Boolean {
         return when {
             tv_category.text.toString().isEmpty() -> {
+                Toast.makeText(
+                    this,
+                    "event category should not be empty", Toast.LENGTH_SHORT
+                ).show()
                 false
             }
             tv_event_date.text.toString().isEmpty() -> {
+                Toast.makeText(
+                    this,
+                    "event date should not be empty", Toast.LENGTH_SHORT
+                ).show()
                 false
             }
             tv_event_time.text.toString().isEmpty() -> {
+                Toast.makeText(
+                    this,
+                    "event time should not be empty", Toast.LENGTH_SHORT
+                ).show()
                 false
             }
             et_event_name.text.toString().isEmpty() -> {
+                Toast.makeText(
+                    this,
+                    "event name should not be empty", Toast.LENGTH_SHORT
+                ).show()
                 false
             }
             else -> {

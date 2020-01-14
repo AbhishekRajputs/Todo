@@ -1,6 +1,5 @@
 package com.example.todo.eventList
 
-import android.app.ActivityOptions
 import android.content.Intent
 import android.graphics.Canvas
 import android.os.Bundle
@@ -8,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ItemDecoration
-import com.example.todo.CommonUtils.setAnimation
 import com.example.todo.R
 import com.example.todo.addEvent.AddEventActivity
 import com.example.todo.database.AppDatabase
@@ -22,6 +20,7 @@ import kotlinx.coroutines.async
 class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListener {
 
     private val eventList = arrayListOf<Events>()
+    private lateinit var list: List<Events>
 
     private val database by lazy {
         AppDatabase(this)
@@ -67,17 +66,14 @@ class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListen
         itemTouchhelper.attachToRecyclerView(rv_events)
 
         CoroutineScope(Dispatchers.IO).async {
-            eventListAdapter.updateAdapter(database.todoDao().getAllEvents())
+            list = database.todoDao().getAllEvents()
+            eventListAdapter.updateAdapter(list)
         }
 
         img_add_event.setOnClickListener {
-            setAnimation(window)
-            val options = ActivityOptions.makeSceneTransitionAnimation(this)
-            startActivityForResult(
-                Intent(this, AddEventActivity::class.java),
-                EVENT_LIST,
-                options.toBundle()
-            )
+            val intent = Intent(this, AddEventActivity::class.java)
+            intent.putParcelableArrayListExtra(EXTRA_ALL_EVENT, list as ArrayList)
+            startActivityForResult(intent, EVENT_LIST)
         }
     }
 
@@ -92,9 +88,11 @@ class EventListActivity : AppCompatActivity(), EventListAdapter.ModifyItemListen
 
     companion object {
         const val EVENT_LIST = 7000
+        const val EXTRA_ALL_EVENT = "extra_all_events"
     }
 
     override fun viewEvent(events: Events) {
         startActivity(ViewEventActivity.createIntent(this, events))
     }
 }
+

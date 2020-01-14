@@ -206,7 +206,7 @@ class SwipeController(buttonsActions: SwipeControllerActions?) :
         viewHolder: RecyclerView.ViewHolder
     ) {
         val buttonWidthWithoutPadding = buttonWidth - 20
-        val corners = 16f
+        val corners = 36f
         val itemView = viewHolder.itemView
         val p = Paint()
         val leftButton = RectF(
@@ -215,7 +215,7 @@ class SwipeController(buttonsActions: SwipeControllerActions?) :
             itemView.left + buttonWidthWithoutPadding,
             itemView.bottom.toFloat()
         )
-        p.color = Color.BLUE
+        p.color = Color.MAGENTA
         c.drawRoundRect(leftButton, corners, corners, p)
         drawText("EDIT", c, leftButton, p)
         val rightButton = RectF(
