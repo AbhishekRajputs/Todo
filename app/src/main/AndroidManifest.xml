@@ -8,6 +8,7 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
+    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:name=".BaseApp"
         android:allowBackup="true"
@@ -27,6 +28,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".alarmUtils.TriggerAlarm" />
+
+        <receiver android:name=".alarmUtils.AlarmReciever" android:process=":remote"
+            android:enabled="true"
+            android:exported="true"/>
+
     </application>
 
 </manifest>

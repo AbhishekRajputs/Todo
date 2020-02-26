@@ -44,6 +44,7 @@ class AddEventActivity : AppCompatActivity(),
             startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
         }
 
+
         tv_category.setOnClickListener {
             val tv = MyDialogFragment(this)
             tv.setStyle(
