@@ -1,15 +1,20 @@
 package com.example.todo.addEvent
 
+import android.app.AlarmManager
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
+import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.app.TimePickerDialog.OnTimeSetListener
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.TimePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
+import com.example.todo.AlarmReceiver
 import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.R
 import com.example.todo.database.AppDatabase
@@ -28,6 +33,9 @@ class AddEventActivity : AppCompatActivity(),
     MyDialogFragment.ItemClickListener {
 
     private lateinit var eventList: ArrayList<Events>
+    lateinit var am:AlarmManager
+    lateinit var tp:TimePicker
+    lateinit var pi:PendingIntent
 
     private val calendar by lazy {
         Calendar.getInstance()
@@ -48,6 +56,8 @@ class AddEventActivity : AppCompatActivity(),
                 eventList = it.getParcelableArrayListExtra<Events>(EXTRA_ALL_EVENT)
             }
         }
+        var myIntent:Intent= Intent(this, AlarmReceiver::class.java)
+        am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         bt_scan.setOnClickListener {
             startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
@@ -97,6 +107,7 @@ class AddEventActivity : AppCompatActivity(),
                 false
             )
             timePickerDialog.show()
+
         }
 
         bt_save.setOnClickListener {
@@ -126,6 +137,9 @@ class AddEventActivity : AppCompatActivity(),
                     CoroutineScope(Dispatchers.IO).async {
                         database.todoDao().insertAll(events)
                     }
+                    myIntent.putExtra("extra","on")
+                    pi= PendingIntent.getBroadcast(this,0,myIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    am.setExact(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pi)
                     finish()
                 }
             }
