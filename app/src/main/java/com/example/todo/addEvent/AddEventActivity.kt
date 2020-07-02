@@ -1,5 +1,6 @@
 package com.example.todo.addEvent
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
@@ -12,11 +13,14 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.R
+import com.example.todo.barCode.BarcodeReaderActivity
+import com.example.todo.barCode.BarcodeReaderFragment
 import com.example.todo.database.AppDatabase
 import com.example.todo.databinding.ActivityAddEventBinding
 import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
 import com.example.todo.modal.Events
 import com.example.todo.scanner.ScannerActivity
+import com.google.android.gms.vision.barcode.Barcode
 import kotlinx.android.synthetic.main.activity_add_event.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -26,6 +30,7 @@ import java.util.*
 class AddEventActivity : AppCompatActivity(),
     MyDialogFragment.ItemClickListener {
 
+    private val BARCODE_READER_ACTIVITY_REQUEST: Int =1008
     private val calendar by lazy {
         Calendar.getInstance()
     }
@@ -41,7 +46,8 @@ class AddEventActivity : AppCompatActivity(),
         binding = DataBindingUtil.setContentView(this, R.layout.activity_add_event)
 
         bt_scan.setOnClickListener {
-            startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
+            val launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false)
+            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST)
         }
 
 
@@ -153,8 +159,20 @@ class AddEventActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SCAN_DATA && data != null) {
+        /*if (requestCode == SCAN_DATA && data != null) {
             binding.events = data.getParcelableExtra("scan_data")
+        }*/
+
+        if (resultCode != Activity.RESULT_OK) {
+            Toast.makeText(this, "error in  scanning", Toast.LENGTH_SHORT).show()
+            return
+        }
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+        if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
+            val barcode: Barcode =
+                data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE)
+            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_SHORT).show()
+            BarcodeReaderFragment().playBeep()
         }
     }
 

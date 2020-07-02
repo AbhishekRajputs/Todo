@@ -21,6 +21,7 @@
         <activity android:name=".scanner.ScannerActivity"/>
         <activity android:name=".viewEvent.ViewEventActivity" />
         <activity android:name=".addEvent.AddEventActivity" />
+        <activity android:name=".barCode.BarcodeReaderActivity"/>
         <activity android:name=".eventList.EventListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
