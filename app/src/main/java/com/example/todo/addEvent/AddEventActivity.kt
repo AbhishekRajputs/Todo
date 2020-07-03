@@ -35,7 +35,7 @@ class AddEventActivity : AppCompatActivity(),
     private lateinit var eventList: ArrayList<Events>
     lateinit var am:AlarmManager
     lateinit var tp:TimePicker
-    lateinit var pi:PendingIntent
+    //lateinit var pi:PendingIntent
 
     private val calendar by lazy {
         Calendar.getInstance()
@@ -138,8 +138,8 @@ class AddEventActivity : AppCompatActivity(),
                         database.todoDao().insertAll(events)
                     }
                     myIntent.putExtra("extra","on")
-                    pi= PendingIntent.getBroadcast(this,0,myIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-                    am.setExact(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pi)
+                   val pendingIntent= PendingIntent.getBroadcast(this,0,myIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    am.setExact(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pendingIntent)
                     finish()
                 }
             }
