@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.example.todo.alarmUtils.AlarmReciever
+import com.example.todo.alarmUtils.TriggerAlarm
 import timber.log.Timber
 import java.util.*
 
@@ -17,6 +18,10 @@ class BaseApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+
+
+
         Timber.plant(Timber.DebugTree())
 
         createNotificationChannel()

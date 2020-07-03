@@ -2,13 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.todo">
-
+    <uses-sdk
+        android:minSdkVersion="8"
+        android:targetSdkVersion="17" />
+<uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
-    <uses-permission android:name="android.permission.VIBRATE" />
     <application
         android:name=".BaseApp"
         android:allowBackup="true"
@@ -18,10 +20,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".scanner.ScannerActivity"/>
+
+        <activity android:name=".alarm.AlarmTrigger"></activity>
+        <activity android:name=".alarm.NotificationActivity"></activity>
+
+        <activity android:name=".scanner.ScannerActivity" />
         <activity android:name=".viewEvent.ViewEventActivity" />
         <activity android:name=".addEvent.AddEventActivity" />
-        <activity android:name=".barCode.BarcodeReaderActivity"/>
+        <activity android:name=".barCode.BarcodeReaderActivity" />
         <activity android:name=".eventList.EventListActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,12 +35,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".alarmUtils.TriggerAlarm" />
+        <activity android:name=".alarmUtils.TriggerAlarm"
+            tools:ignore="Instantiatable" />
 
-        <receiver android:name=".alarmUtils.AlarmReciever" android:process=":remote"
+        <receiver
+            android:name=".alarmUtils.AlarmReciever"
             android:enabled="true"
-            android:exported="true"/>
-
+            android:exported="true"
+            android:process=":remote" />
+        <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:process=":remote" />
     </application>
 
 </manifest>
