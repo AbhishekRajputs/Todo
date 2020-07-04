@@ -1,6 +1,8 @@
 package com.example.todo.addEvent
 
 import android.app.AlarmManager
+import android.app.Activity
+
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.PendingIntent
@@ -17,12 +19,15 @@ import androidx.fragment.app.DialogFragment
 import com.example.todo.AlarmReceiver
 import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.R
+import com.example.todo.alarm.AlarmTriggerActivity
+import com.example.todo.barCode.BarcodeReaderActivity
+import com.example.todo.barCode.BarcodeReaderFragment
 import com.example.todo.database.AppDatabase
 import com.example.todo.databinding.ActivityAddEventBinding
 import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
 import com.example.todo.eventList.EventListActivity.Companion.EXTRA_ALL_EVENT
 import com.example.todo.modal.Events
-import com.example.todo.scanner.ScannerActivity
+import com.google.android.gms.vision.barcode.Barcode
 import kotlinx.android.synthetic.main.activity_add_event.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -36,6 +41,9 @@ class AddEventActivity : AppCompatActivity(),
     lateinit var am:AlarmManager
     lateinit var tp:TimePicker
     lateinit var pi:PendingIntent
+
+
+    private val BARCODE_READER_ACTIVITY_REQUEST: Int =1008
 
     private val calendar by lazy {
         Calendar.getInstance()
@@ -60,8 +68,36 @@ class AddEventActivity : AppCompatActivity(),
         am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         bt_scan.setOnClickListener {
-            startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
+            val launchIntent = BarcodeReaderActivity.getLaunchIntent(this, true, false)
+            startActivityForResult(launchIntent, BARCODE_READER_ACTIVITY_REQUEST)
         }
+
+        bt_alram_play.setOnClickListener {
+            startActivity(Intent(this, AlarmTriggerActivity::class.java))
+        }
+    bt_share.setOnClickListener {
+        /** ACTION_SEND: Deliver some data to someone else.
+        createChooser (Intent target, CharSequence title): Here, target- The Intent that the user will be selecting an activity to perform.
+        title- Optional title that will be displayed in the chooser.
+        Intent.EXTRA_TEXT: A constant CharSequence that is associated with the Intent, used with ACTION_SEND to supply the literal data to be sent.
+         */
+        try {
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, "My application name")
+            var shareMessage = "\nLet me recommend you this application\n\n"
+            shareMessage = """
+                ${shareMessage}https://play.google.com/store/apps/details?id=com.amartexlogistics
+                
+                
+                """.trimIndent()
+            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
+            startActivity(Intent.createChooser(shareIntent, "Share via "))
+        } catch (e: Exception) {
+            //e.toString();
+        }
+
+    }
 
         tv_category.setOnClickListener {
             val tv = MyDialogFragment(this)
@@ -117,6 +153,7 @@ class AddEventActivity : AppCompatActivity(),
                 eventDate = tv_event_date.text.toString()
                 eventTime = tv_event_time.text.toString()
                 eventName = et_event_name.text.toString()
+
             }
 
             if (validation()) {
@@ -198,8 +235,20 @@ class AddEventActivity : AppCompatActivity(),
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SCAN_DATA && data != null) {
+        /*if (requestCode == SCAN_DATA && data != null) {
             binding.events = data.getParcelableExtra("scan_data")
+        }*/
+
+        if (resultCode != Activity.RESULT_OK) {
+            Toast.makeText(this, "error in  scanning", Toast.LENGTH_SHORT).show()
+            return
+        }
+        @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+        if (requestCode == BARCODE_READER_ACTIVITY_REQUEST && data != null) {
+            val barcode: Barcode =
+                data.getParcelableExtra(BarcodeReaderActivity.KEY_CAPTURED_BARCODE)
+            Toast.makeText(this, barcode.rawValue, Toast.LENGTH_SHORT).show()
+            BarcodeReaderFragment().playBeep()
         }
     }
 
