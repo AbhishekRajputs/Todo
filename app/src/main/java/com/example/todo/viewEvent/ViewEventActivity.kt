@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.databinding.DataBindingUtil
-import com.example.todo.CommonUtils.toImageEncode
 import com.example.todo.R
 import com.example.todo.databinding.ActivityViewEventBinding
 import com.example.todo.modal.Events
@@ -30,12 +29,12 @@ class ViewEventActivity : AppCompatActivity() {
 
         btn_generate_qrcode.setOnClickListener {
             CoroutineScope(Dispatchers.IO).async {
-                img_qr_code.setImageBitmap(
-                    toImageEncode(
-                        binding.events as Events,
-                        this@ViewEventActivity
-                    )
-                )
+                //img_qr_code.setImageBitmap(
+//                    toImageEncode(
+//                        binding.events as Events,
+//                        this@ViewEventActivity
+//                    )
+               // )
             }
         }
     }

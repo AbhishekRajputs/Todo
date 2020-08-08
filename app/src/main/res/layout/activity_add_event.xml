@@ -75,7 +75,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tv_event_date" />
 
-
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/bt_cancel"
             android:layout_width="wrap_content"

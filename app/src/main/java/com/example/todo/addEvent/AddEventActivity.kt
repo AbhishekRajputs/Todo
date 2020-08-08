@@ -1,41 +1,36 @@
 package com.example.todo.addEvent
 
-import android.app.AlarmManager
 import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
-import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.app.TimePickerDialog.OnTimeSetListener
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.widget.TimePicker
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
-import com.example.todo.AlarmReceiver
-import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.R
 import com.example.todo.database.AppDatabase
 import com.example.todo.databinding.ActivityAddEventBinding
+import com.example.todo.dialogFragment.MyDialogFragment
 import com.example.todo.eventList.EventListActivity.Companion.EVENT_LIST
 import com.example.todo.eventList.EventListActivity.Companion.EXTRA_ALL_EVENT
 import com.example.todo.modal.Events
-import com.example.todo.scanner.ScannerActivity
 import kotlinx.android.synthetic.main.activity_add_event.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.util.*
-import kotlin.collections.ArrayList
+import com.notbytes.barcode_reader.BarcodeReaderActivity
 
 
 class AddEventActivity : AppCompatActivity(),
     MyDialogFragment.ItemClickListener {
 
     private lateinit var eventList: ArrayList<Events>
-    lateinit var am:AlarmManager
-    lateinit var tp:TimePicker
-    //lateinit var pi:PendingIntent
+
+    private val BARCODE_READER_ACTIVITY_REQUEST: Int =1008
 
     private val calendar by lazy {
         Calendar.getInstance()
@@ -56,12 +51,14 @@ class AddEventActivity : AppCompatActivity(),
                 eventList = it.getParcelableArrayListExtra<Events>(EXTRA_ALL_EVENT)
             }
         }
-        var myIntent:Intent= Intent(this, AlarmReceiver::class.java)
-        am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
 
         bt_scan.setOnClickListener {
-            startActivityForResult(Intent(this, ScannerActivity::class.java), SCAN_DATA)
+            startActivityForResult(BarcodeReaderActivity.getLaunchIntent(this, true, false), BARCODE_READER_ACTIVITY_REQUEST)
         }
+
+
+
 
         tv_category.setOnClickListener {
             val tv = MyDialogFragment(this)
@@ -117,6 +114,7 @@ class AddEventActivity : AppCompatActivity(),
                 eventDate = tv_event_date.text.toString()
                 eventTime = tv_event_time.text.toString()
                 eventName = et_event_name.text.toString()
+
             }
 
             if (validation()) {
@@ -137,10 +135,8 @@ class AddEventActivity : AppCompatActivity(),
                     CoroutineScope(Dispatchers.IO).async {
                         database.todoDao().insertAll(events)
                     }
-                    myIntent.putExtra("extra","on")
-                   val pendingIntent= PendingIntent.getBroadcast(this,0,myIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-                    am.setExact(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pendingIntent)
                     finish()
+
                 }
             }
         }
@@ -194,16 +190,5 @@ class AddEventActivity : AppCompatActivity(),
             val dialog = fragment as DialogFragment?
             dialog!!.dismiss()
         }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SCAN_DATA && data != null) {
-            binding.events = data.getParcelableExtra("scan_data")
-        }
-    }
-
-    companion object {
-        const val SCAN_DATA = 8000
     }
 }
